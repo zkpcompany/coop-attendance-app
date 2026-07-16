@@ -43,6 +43,10 @@ def create_student(name, grade, photo_path=None):
         saved_photo_path = os.path.join(PHOTO_DIR, f"{student_id}{ext}")
         os.replace(photo_path, saved_photo_path)
 
+    # Prevent SQLite crash
+    if saved_photo_path is None:
+        saved_photo_path = ""
+
     # Save to local SQLite
     add_student_local(
         student_id=student_id,
@@ -51,6 +55,7 @@ def create_student(name, grade, photo_path=None):
         photo_path=saved_photo_path,
         qr_path=qr_path
     )
+
 
     # Sync to Firebase
     cloud_set_student(student_id, {
