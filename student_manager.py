@@ -62,7 +62,8 @@ def create_student(name, grade, photo_path=None):
         "name": name,
         "grade": grade,
         "photo_path": saved_photo_path,
-        "qr_path": qr_path
+        "qr_path": qr_path,
+        "last_checkin": ""   # ⭐ CRITICAL FIX
     })
 
     # Return student object
@@ -71,7 +72,8 @@ def create_student(name, grade, photo_path=None):
         "name": name,
         "grade": grade,
         "photo_path": saved_photo_path,
-        "qr_path": qr_path
+        "qr_path": qr_path,
+        "last_checkin": ""
     }
 
 
@@ -81,7 +83,7 @@ def create_student(name, grade, photo_path=None):
 
 def get_student(student_id):
     """
-    Returns student info from Firebase.
-    Returns None if student does not exist.
+    Always fetch student info from Firebase.
+    Prevents stale cache issues.
     """
     return cloud_get_student(student_id)
