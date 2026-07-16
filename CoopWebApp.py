@@ -66,8 +66,6 @@ if page == "Check-In Station":
 import cv2
 import numpy as np
 
-st.subheader("📷 Mobile QR Scanner")
-
 img = st.camera_input("Scan QR Code")
 
 if img is not None:
