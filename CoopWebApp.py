@@ -247,3 +247,46 @@ elif page == "Settings":
         with col2:
             if st.button("Cancel"):
                 st.info("Cancelled. No changes made.")
+
+# ---------------- DELETE SPECIFIC STUDENT ---------------- #
+st.subheader("Delete Specific Student")
+
+# Load all students
+all_students = db.reference("students").get() or {}
+
+if not all_students:
+    st.info("No students available to delete.")
+else:
+    # Dropdown list of students
+    student_options = {
+        f"{data['name']} (ID: {sid})": sid
+        for sid, data in all_students.items()
+    }
+
+    selected = st.selectbox("Select a student to delete:", list(student_options.keys()))
+
+    if st.button("Delete Student"):
+        sid = student_options[selected]
+
+        st.warning(f"Are you sure you want to DELETE {selected}? This cannot be undone.")
+
+        colA, colB = st.columns(2)
+
+        with colA:
+            if st.button("Yes, delete"):
+                from database_cloud import cloud_delete_student
+
+                # Delete Firebase data
+                cloud_delete_student(sid)
+
+                # Delete local photo if exists
+                import os
+                photo_path = all_students[sid].get("photo_path", "")
+                if photo_path and os.path.exists(photo_path):
+                    os.remove(photo_path)
+
+                st.success(f"{selected} has been deleted from the system.")
+
+        with colB:
+            if st.button("Cancel Delete"):
+                st.info("Deletion cancelled.")
