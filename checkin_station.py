@@ -32,14 +32,12 @@ def auto_check(student_id):
     # CHECK-OUT LOGIC
     # ---------------------------------------------------------
     if current_status == "Checked In":
-        # Retrieve last check-in time from student record
         checkin_time = student.get("last_checkin")
 
         if not checkin_time:
             # If missing, treat as fresh check-in
-            cloud_set_status(student_id, "Checked In")
             student["last_checkin"] = now
-            cloud_set_status(student_id, {"state": "in", "time": now})
+            cloud_set_status(student_id, "Checked In")
             return {
                 "status": "checkin",
                 "student": student,
