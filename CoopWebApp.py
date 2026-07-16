@@ -119,7 +119,7 @@ elif page == "Teacher Dashboard":
 
 # ---------------- ADMIN PANEL ---------------- #
 elif page == "Admin Panel":
-    st.title("🛠️ Admin Panel")
+    st.title("🛠️ Create Student")
 
     name = st.text_input("Student Name")
     grade = st.text_input("Grade")
