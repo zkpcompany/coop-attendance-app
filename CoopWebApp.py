@@ -244,6 +244,7 @@ elif page == "Settings":
             if st.button("Yes, clear everything"):
                 clear_all_statuses()
                 st.success("All check-in statuses have been cleared!")
+                st.experimental_rerun()
 
         with col2:
             if st.button("Cancel"):
@@ -278,8 +279,10 @@ elif page == "Settings":
                 if st.button("Yes, delete"):
                     from database_cloud import cloud_delete_student
 
+                    # Delete Firebase data
                     cloud_delete_student(sid)
 
+                    # Delete local photo if exists
                     import os
                     photo_path = all_students[sid].get("photo_path", "")
                     if photo_path and os.path.exists(photo_path):
@@ -287,7 +290,9 @@ elif page == "Settings":
 
                     st.success(f"{selected} has been deleted from the system.")
 
+                    # 🔥 FORCE PAGE REFRESH
+                    st.experimental_rerun()
+
             with colB:
                 if st.button("Cancel Delete"):
                     st.info("Deletion cancelled.")
-
