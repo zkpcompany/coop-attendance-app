@@ -97,7 +97,7 @@ if page == "Check-In Station":
 
 # ---------------- TEACHER DASHBOARD ---------------- #
 elif page == "Teacher Dashboard":
-    st.title("📊 Teacher Dashboard")
+    st.title("📊 Dashboard")
 
     statuses = cloud_get_all_statuses()
     if not statuses:
