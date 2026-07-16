@@ -7,9 +7,10 @@ DATABASE_URL = "https://coopcheckinsystem-default-rtdb.firebaseio.com/"
 
 def init_firebase():
     if not firebase_admin._apps:
-        cred = credentials.Certificate(st.secrets["firebase"])
+        firebase_config = dict(st.secrets["firebase"])
+        cred = credentials.Certificate(firebase_config)
         firebase_admin.initialize_app(cred, {
-            "databaseURL": st.secrets["firebase"]["databaseURL"]
+            "databaseURL": firebase_config["databaseURL"]
         })
 
 def cloud_set_student(student_id, data):
