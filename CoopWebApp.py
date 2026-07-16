@@ -99,14 +99,38 @@ if page == "Check-In Station":
 elif page == "Teacher Dashboard":
     st.title("📊 Dashboard")
 
-    statuses = cloud_get_all_statuses()
-    if not statuses:
-        st.info("No students found.")
-    else:
-        for student_id, status in statuses.items():
-            student = cloud_get_student(student_id)
-            if student:
-                # status might be a dict; handle both string/dict
+    statuses = cloud_get_all_statuses() or {}
+
+    # Search bar
+    search = st.text_input("Search by name or ID:")
+
+    # View mode toggle
+    view_mode = st.radio("View Mode:", ["List", "Charts"])
+
+    # ---------------- LIST VIEW ---------------- #
+    if view_mode == "List":
+        if not statuses:
+            st.info("No students found.")
+        else:
+            # Build list of (id, student, status)
+            student_list = []
+            for student_id, status in statuses.items():
+                student = cloud_get_student(student_id)
+                if student:
+                    student_list.append((student_id, student, status))
+
+            # Sort alphabetically by FIRST name
+            student_list.sort(key=lambda x: x[1]["name"].split()[0].lower())
+
+            # Display filtered list
+            for student_id, student, status in student_list:
+                # Apply search filter
+                if search.strip():
+                    q = search.lower()
+                    if q not in student["name"].lower() and q not in student_id.lower():
+                        continue
+
+                # Format status
                 if isinstance(status, dict):
                     state = status.get("state", "unknown")
                     time = status.get("time", "")
@@ -115,6 +139,46 @@ elif page == "Teacher Dashboard":
                     status_text = str(status)
 
                 st.write(f"**{student['name']}** — Grade {student['grade']} — *{status_text}*")
+
+    # ---------------- CHART VIEW ---------------- #
+    elif view_mode == "Charts":
+        st.subheader("📈 Attendance Charts")
+
+        import pandas as pd
+        import altair as alt
+        from firebase_admin import db
+
+        all_attendance = []
+
+        # Build attendance dataset
+        for student_id in statuses.keys():
+            logs = db.reference(f"attendance/{student_id}").get() or {}
+            student = cloud_get_student(student_id)
+
+            for entry in logs.values():
+                all_attendance.append({
+                    "Student": student["name"],
+                    "Duration (min)": (
+                        int(entry.get("duration", "0:00").split(":")[0]) * 60 +
+                        int(entry.get("duration", "0:00").split(":")[1])
+                    ),
+                    "Checkin": entry.get("checkin"),
+                    "Checkout": entry.get("checkout")
+                })
+
+        if not all_attendance:
+            st.info("No attendance data yet.")
+        else:
+            df = pd.DataFrame(all_attendance)
+
+            # Duration chart
+            duration_chart = alt.Chart(df).mark_bar().encode(
+                x=alt.X("Student:N", sort="-y"),
+                y="Duration (min):Q",
+                color="Student:N"
+            ).properties(title="Total Attendance Duration (Minutes)")
+
+            st.altair_chart(duration_chart, use_container_width=True)
 
 
 # ---------------- ADMIN PANEL ---------------- #
