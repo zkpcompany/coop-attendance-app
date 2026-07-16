@@ -1,19 +1,22 @@
 import streamlit as st
-
-from database_cloud import init_firebase
-init_firebase()
-
-from student_manager import create_student, get_student
-from checkin_station import auto_check
-from database_cloud import cloud_get_all_statuses, cloud_get_student
-from sync_engine import start_sync_thread
+import cv2
+import numpy as np
 import qrcode
 from PIL import Image
 import io
 
+from database_cloud import (
+    init_firebase,
+    cloud_get_all_statuses,
+    cloud_get_student,
+    clear_all_statuses,
+)
+from student_manager import create_student
+from checkin_station import auto_check
+
 
 # ---------------- INIT SYSTEM ---------------- #
-start_sync_thread()
+init_firebase()
 
 st.set_page_config(
     page_title="Co-Op Check-In System",
@@ -21,12 +24,15 @@ st.set_page_config(
     layout="wide"
 )
 
+
 # ---------------- ADMIN AUTH ---------------- #
 def admin_login():
     st.session_state["admin"] = True
 
+
 def admin_logout():
     st.session_state["admin"] = False
+
 
 def admin_check():
     return st.session_state.get("admin", False)
@@ -39,6 +45,7 @@ page = st.sidebar.radio(
     "Go to:",
     ["Check-In Station", "Teacher Dashboard", "Admin Panel", "Analytics", "Settings"]
 )
+
 
 # ---------------- CHECK-IN STATION ---------------- #
 if page == "Check-In Station":
@@ -62,35 +69,30 @@ if page == "Check-In Station":
     st.subheader("📷 Mobile QR Scanner")
 
     # MOBILE CAMERA QR SCAN
+    img = st.camera_input("Scan QR Code")
 
-import cv2
-import numpy as np
+    if img is not None:
+        # Convert to OpenCV image
+        file_bytes = np.asarray(bytearray(img.read()), dtype=np.uint8)
+        frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-img = st.camera_input("Scan QR Code")
+        # Decode QR using OpenCV (no pyzbar needed)
+        detector = cv2.QRCodeDetector()
+        qr_data, points, _ = detector.detectAndDecode(frame)
 
-if img is not None:
-    # Convert to OpenCV image
-    file_bytes = np.asarray(bytearray(img.read()), dtype=np.uint8)
-    frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+        if qr_data:
+            st.success(f"QR Detected: {qr_data}")
 
-    # Decode QR using OpenCV (no pyzbar needed)
-    detector = cv2.QRCodeDetector()
-    qr_data, points, _ = detector.detectAndDecode(frame)
+            result = auto_check(qr_data)
 
-    if qr_data:
-        st.success(f"QR Detected: {qr_data}")
-
-        result = auto_check(qr_data)
-
-        if result["status"] == "checkin":
-            st.success(f"{result['student']['name']} checked in at {result['time']}")
-        elif result["status"] == "checkout":
-            st.error(f"{result['student']['name']} checked out\nDuration: {result['duration']}")
+            if result["status"] == "checkin":
+                st.success(f"{result['student']['name']} checked in at {result['time']}")
+            elif result["status"] == "checkout":
+                st.error(f"{result['student']['name']} checked out\nDuration: {result['duration']}")
+            else:
+                st.warning(result["message"])
         else:
-            st.warning(result["message"])
-    else:
-        st.warning("No QR code detected yet — hold it steady in front of the camera.")
-
+            st.warning("No QR code detected yet — hold it steady in front of the camera.")
 
 
 # ---------------- TEACHER DASHBOARD ---------------- #
@@ -104,7 +106,16 @@ elif page == "Teacher Dashboard":
         for student_id, status in statuses.items():
             student = cloud_get_student(student_id)
             if student:
-                st.write(f"**{student['name']}** — Grade {student['grade']} — *{status}*")
+                # status might be a dict; handle both string/dict
+                if isinstance(status, dict):
+                    state = status.get("state", "unknown")
+                    time = status.get("time", "")
+                    status_text = f"{state} at {time}" if time else state
+                else:
+                    status_text = str(status)
+
+                st.write(f"**{student['name']}** — Grade {student['grade']} — *{status_text}*")
+
 
 # ---------------- ADMIN PANEL ---------------- #
 elif page == "Admin Panel":
@@ -132,10 +143,12 @@ elif page == "Admin Panel":
         qr.save(buf)
         st.image(buf.getvalue(), caption="Student QR Code")
 
+
 # ---------------- ANALYTICS ---------------- #
 elif page == "Analytics":
     st.title("📈 Attendance Analytics")
     st.info("Analytics dashboard coming soon!")
+
 
 # ---------------- SETTINGS ---------------- #
 elif page == "Settings":
@@ -164,7 +177,6 @@ elif page == "Settings":
 
         with col1:
             if st.button("Yes, clear everything"):
-                from database_cloud import clear_all_statuses
                 clear_all_statuses()
                 st.success("All check-in statuses have been cleared!")
 
