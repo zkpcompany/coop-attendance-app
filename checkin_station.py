@@ -1,5 +1,5 @@
 from datetime import datetime
-from database_cloud import cloud_set_status, cloud_log_attendance, cloud_get_student
+from database_cloud import cloud_set_status, cloud_log_attendance, cloud_get_all_statuses
 from student_manager import get_student
 
 
@@ -7,9 +7,12 @@ def auto_check(student_id):
     """
     Auto check-in / check-out logic using Firebase only.
 
+    Firebase structure:
+        status/{student_id} = "Checked In" or "Checked Out"
+
     Behavior:
-    - If student has no active status → CHECK-IN
-    - If student is currently checked in → CHECK-OUT
+    - If status is missing or "Checked Out" → CHECK-IN
+    - If status is "Checked In" → CHECK-OUT
     """
 
     # Get student info
@@ -19,15 +22,29 @@ def auto_check(student_id):
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Get current status from Firebase
-    status_ref = cloud_get_student(student_id)
-    current_status = status_ref.get("status") if status_ref else None
+    # Get all statuses
+    statuses = cloud_get_all_statuses() or {}
+
+    # Get this student's current status
+    current_status = statuses.get(student_id, None)
 
     # ---------------------------------------------------------
     # CHECK-OUT LOGIC
     # ---------------------------------------------------------
-    if current_status and current_status.get("state") == "in":
-        checkin_time = current_status.get("time")
+    if current_status == "Checked In":
+        # Retrieve last check-in time from student record
+        checkin_time = student.get("last_checkin")
+
+        if not checkin_time:
+            # If missing, treat as fresh check-in
+            cloud_set_status(student_id, "Checked In")
+            student["last_checkin"] = now
+            cloud_set_status(student_id, {"state": "in", "time": now})
+            return {
+                "status": "checkin",
+                "student": student,
+                "time": now
+            }
 
         # Calculate duration
         t1 = datetime.strptime(checkin_time, "%Y-%m-%d %H:%M:%S")
@@ -36,10 +53,7 @@ def auto_check(student_id):
         duration = f"{minutes//60}:{minutes%60:02d}"
 
         # Update Firebase status
-        cloud_set_status(student_id, {
-            "state": "out",
-            "time": now
-        })
+        cloud_set_status(student_id, "Checked Out")
 
         # Log attendance entry
         cloud_log_attendance(student_id, {
@@ -59,11 +73,11 @@ def auto_check(student_id):
     # CHECK-IN LOGIC
     # ---------------------------------------------------------
     else:
+        # Save check-in time inside student record
+        student["last_checkin"] = now
+
         # Update Firebase status
-        cloud_set_status(student_id, {
-            "state": "in",
-            "time": now
-        })
+        cloud_set_status(student_id, "Checked In")
 
         return {
             "status": "checkin",
