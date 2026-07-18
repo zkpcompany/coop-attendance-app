@@ -1,0 +1,13 @@
+{
+  "name": "Enterz",
+  "short_name": "Enterz",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone"
+}
