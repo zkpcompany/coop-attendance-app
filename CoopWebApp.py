@@ -27,8 +27,8 @@ st.set_page_config(
 
 st.markdown(
     """
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="static/manifest.json">
+    <link rel="apple-touch-icon" href="static/apple-touch-icon.png">
     """,
     unsafe_allow_html=True
 )
