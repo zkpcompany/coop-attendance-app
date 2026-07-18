@@ -28,40 +28,43 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        /* Remove Streamlit's default top padding */
+        /* Remove Streamlit default padding */
         .block-container {
-            padding-top: 0rem;
+            padding-top: 0rem !important;
         }
 
-        /* Custom header container */
-        .app-header {
+        /* Header container */
+        .enterz-header {
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px 0;
+            padding: 12px 0;
             background-color: #ffffff;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e6e6e6;
         }
 
-        .app-header img {
-            height: 60px; /* Adjust logo size here */
-            margin-right: 10px;
+        .enterz-header img {
+            height: 50px;
+            margin-right: 12px;
         }
 
-        .app-title {
-            font-size: 32px;
+        .enterz-title {
+            font-size: 28px;
             font-weight: 600;
             font-family: 'Arial', sans-serif;
+            letter-spacing: 1px;
         }
     </style>
 
-    <div class="app-header">
+    <div class="enterz-header">
         <img src="https://raw.githubusercontent.com/zkpcompany/coop-attendance-app/main/EnterzLogo.png">
-        <span class="app-title">ENTERZ</span>
+        <span class="enterz-title">ENTERZ</span>
     </div>
     """,
     unsafe_allow_html=True
 )
+
 
 
 # ---------------- ADMIN AUTH ---------------- #
