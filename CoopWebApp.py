@@ -28,13 +28,11 @@ st.set_page_config(
 st.markdown(
     """
     <div style="text-align:center;">
-        <img src="https://raw.githubusercontent.com/zkpcompany/coop-attendance-app/main/logo.png" width="180">
+        <img src="https://raw.githubusercontent.com/zkpcompany/coop-attendance-app/main/EnterzLogo.png" width="180">
     </div>
     """,
     unsafe_allow_html=True
 )
-
-
 
 # ---------------- ADMIN AUTH ---------------- #
 def admin_login():
