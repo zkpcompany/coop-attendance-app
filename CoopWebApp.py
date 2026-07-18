@@ -78,7 +78,7 @@ st.sidebar.title("📘 Menu")
 
 page = st.sidebar.radio(
     "Go to:",
-    ["Check-In Station", "Dashboard", "Create a Student", "Analytics", "Settings"]
+    ["Check-In Station", "Dashboard", "Create Student", "Analytics", "Settings"]
 )
 
 
@@ -217,7 +217,7 @@ elif page == "Teacher Dashboard":
 
 
 # ---------------- ADMIN PANEL ---------------- #
-elif page == "Admin Panel":
+elif page == "Create Student":
     st.title("🛠️ Create Student")
 
     name = st.text_input("Student Name")
