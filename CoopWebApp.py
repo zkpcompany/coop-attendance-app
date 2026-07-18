@@ -65,7 +65,7 @@ def admin_check():
 
 
 # ---------------- SIDEBAR NAVIGATION ---------------- #
-st.sidebar.title("📘 Co-Op Navigation")
+st.sidebar.title("📘 Menu")
 
 page = st.sidebar.radio(
     "Go to:",
